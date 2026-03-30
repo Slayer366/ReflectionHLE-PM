@@ -136,24 +136,80 @@ static void BEL_Cross_TryAddSteamInst(
 static void BEL_Cross_CheckForKDreamsInstallations(UNIX_SPECIFIC_PARAM(const char *homeVar))
 {
 #ifdef REFKEEN_HAS_VER_KDREAMS
+    const BE_GameVerDetails_T *kdreamsVers[] = {
+        &g_be_gamever_kdreamse100,
+        &g_be_gamever_kdreamsc100,
+        &g_be_gamever_kdreamse113,
+        &g_be_gamever_kdreamsc105,
+        &g_be_gamever_kdreamse193,
+        &g_be_gamever_kdreamse120,
+        &g_be_gamever_kdreams2015,
+        0
+    };
+
+#if (defined REFKEEN_PLATFORM_UNIX)
+//    const BE_GameVerDetails_T *kdreamsVers[] = {&g_be_gamever_kdreams2015, 0};
+
+    TCHAR kdreamsPath[BE_CROSS_PATH_LEN_BOUND];
+    static const TCHAR *kdreamsLocalInst = (".");
+
+    BEL_Cross_safeandfastctstringcopy(
+        kdreamsPath,
+        kdreamsPath + BE_Cross_ArrayLen(kdreamsPath),
+        kdreamsLocalInst);
+
+    // Check current directory
+    BEL_Cross_TryAddInst_Common(&kdreamsPath, kdreamsVers, NULL, "Local");
+
+    // Check common subdirectories
+    const TCHAR *kdreamsSubdirs[] = {
+        _T("/Keen Dreams"),
+        _T("/KDREAMS"),
+        _T("/KDreams"),
+        _T("/kdreams"),
+        _T("/KEENDRMS"),
+        _T("/KeenDreams"),
+        _T("/Keen_dreams"),
+        _T("/keendreams"),
+        0
+    };
+
+    for (int i = 0; kdreamsSubdirs[i]; ++i)
+    {
+        BEL_Cross_safeandfastctstringcopy(
+            kdreamsPath,
+            kdreamsPath + BE_Cross_ArrayLen(kdreamsPath),
+            kdreamsLocalInst);
+
+        BEL_Cross_safeandfastctstringcopy(
+            kdreamsPath + _tcslen(kdreamsPath),
+            kdreamsPath + BE_Cross_ArrayLen(kdreamsPath) - _tcslen(kdreamsPath),
+            kdreamsSubdirs[i]);
+
+        BEL_Cross_TryAddInst_Common(&kdreamsPath, kdreamsVers, NULL, "Local");
+    }
+
+#endif // UNIX
+
 #ifdef REFKEEN_CONFIG_CHECK_FOR_STEAM_INSTALLATION
-	const BE_GameVerDetails_T *kdreamsVers[] = {&g_be_gamever_kdreams2015, 0};
+//	const BE_GameVerDetails_T *kdreamsVers[] = {&g_be_gamever_kdreams2015, 0};
 
 #ifdef REFKEEN_PLATFORM_WINDOWS
-	BEL_Cross_TryAddRegistryInst(
-		_T("SOFTWARE\\MICROSOFT\\WINDOWS\\CURRENTVERSION\\UNINSTALL\\STEAM APP 356200"),
-		_T("INSTALLLOCATION"), _T(""), kdreamsVers, NULL, "Steam");
+    BEL_Cross_TryAddRegistryInst(
+        _T("SOFTWARE\\MICROSOFT\\WINDOWS\\CURRENTVERSION\\UNINSTALL\\STEAM APP 356200"),
+        _T("INSTALLLOCATION"), _T(""), kdreamsVers, NULL, "Steam");
 #else
-	BEL_Cross_TryAddSteamInst(
+    BEL_Cross_TryAddSteamInst(
 #if (defined REFKEEN_PLATFORM_MACOS)
-		homeVar, _T("/Keen Dreams/KDreams.app/Contents/Resources"),
+        homeVar, _T("/Keen Dreams/KDreams.app/Contents/Resources"),
 #else
-		homeVar, _T("/Keen Dreams"),
+        homeVar, _T("/Keen Dreams"),
 #endif
-		kdreamsVers, NULL, "Steam");
+        kdreamsVers, NULL, "Steam");
 #endif // PLATFORM
 
 #endif // REFKEEN_CONFIG_CHECK_FOR_STEAM_INSTALLATION
+
 #endif // REFKEEN_HAS_VER_KDREAMS
 }
 
